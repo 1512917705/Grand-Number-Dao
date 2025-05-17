@@ -1,0 +1,459 @@
+/* 基本重置与盒模型设置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 基本样式设置 */
+body {
+    font-family: 'Arial', 'Microsoft YaHei', sans-serif;
+    background-color: #FFFFFF;
+    color: #333333;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 页眉样式 */
+#header {
+    background-color: #F0F0F0;
+    padding: 1rem;
+    border-bottom: 1px solid #DDDDDD;
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center; 
+    margin: 0 auto;
+}
+
+.header-left h1 {
+    color: #222222;
+    margin: 0;
+}
+
+.header-right {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.header-btn {
+    padding: 0.5rem 1rem;
+    background-color: #FFFFFF;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.header-btn:hover {
+    background-color: #F5F5F5;
+}
+
+#settings-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+}
+
+#settings-btn:hover {
+    background-color: #2980b9;
+}
+
+/* 主要内容区域样式 */
+#main-content {
+    display: flex;
+    flex-direction: column; /* 移动设备默认为纵向排列 */
+    padding: 1rem;
+    flex: 1; /* 确保内容区域占据剩余高度 */
+    gap: 1rem; /* 面板之间的间距 */
+}
+
+/* 面板通用样式 */
+.panel {
+    background-color: #FAFAFA;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    min-height: 200px; /* 确保面板有最小高度 */
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #EEEEEE;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.panel-header h2 {
+    color: #222222;
+    margin: 0;
+}
+
+.toggle-btn {
+    background: none;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s;
+}
+
+.toggle-btn:hover {
+    background-color: #F0F0F0;
+}
+
+/* 左侧面板收起状态 */
+#left-panel.collapsed {
+    width: 60px;
+    min-width: 60px;
+    overflow: hidden;
+}
+
+#left-panel.collapsed .toggle-btn {
+    transform: rotate(180deg);
+}
+
+#left-panel.collapsed #skills-container {
+    display: none;
+}
+
+/* 左侧面板 - 技能相关区域 */
+#left-panel {
+    background-color: #F5F8FF; /* 稍微带点蓝色调 */
+    transition: width 0.3s, min-width 0.3s;
+}
+
+#skills-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+#manual-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.action-btn {
+    padding: 0.8rem 1.5rem;
+    background-color: #4CAF50; /* 绿色按钮 */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.3s;
+}
+
+.action-btn:hover {
+    background-color: #45a049;
+}
+
+#click-info {
+    font-size: 0.9rem;
+    color: #666666;
+}
+
+.cultivation-method {
+    background-color: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 4px;
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.method-name {
+    font-weight: bold;
+    color: #444444;
+}
+
+.upgrade-btn {
+    background-color: #3498db; /* 蓝色按钮 */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    align-self: flex-end;
+    margin-top: 0.5rem;
+    transition: background-color 0.3s;
+}
+
+.upgrade-btn:hover {
+    background-color: #2980b9;
+}
+
+/* 中间面板 - 各种数值信息区域 */
+#middle-panel {
+    background-color: #FCFCFC;
+}
+
+#resources {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.resource {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem;
+    background-color: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 4px;
+}
+
+.resource-name {
+    font-weight: bold;
+    color: #444444;
+}
+
+.resource-value {
+    color: #222222;
+}
+
+.progress-bar-container {
+    width: 100%;
+    height: 20px;
+    background-color: #E0E0E0;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 0.5rem 0;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #4CAF50; /* 绿色进度条 */
+    width: 0%; /* 初始宽度，将通过JavaScript更新 */
+    transition: width 0.3s;
+}
+
+#realm-progress-text {
+    font-size: 0.9rem;
+    color: #666666;
+    text-align: center;
+}
+
+#stats-container {
+    margin-top: 1.5rem;
+}
+
+.stat-item {
+    padding: 0.5rem;
+    background-color: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+}
+
+/* 右侧面板 - 自动化设备区域 */
+#right-panel {
+    background-color: #FFF8F5; /* 稍微带点橙色调 */
+}
+
+.buy-amount-selector {
+    display: flex;
+    gap: 0.3rem;
+}
+
+.amount-btn {
+    background-color: #FFFFFF;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.amount-btn:hover {
+    background-color: #F5F5F5;
+}
+
+.amount-btn.active {
+    background-color: #3498db;
+    color: white;
+    border-color: #3498db;
+}
+
+.automation-item {
+    background-color: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 4px;
+    padding: 0.8rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.clickable-item {
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.clickable-item:hover {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+.clickable-item:active {
+    transform: scale(0.98);
+}
+
+.clickable-item::after {
+    content: '点击购买';
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: #E67E22;
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.clickable-item:hover::after {
+    opacity: 1;
+}
+
+.item-name {
+    font-weight: bold;
+    color: #444444;
+}
+
+.item-cost {
+    font-size: 0.9rem;
+    color: #E74C3C; /* 红色显示成本 */
+}
+
+.clickable-item.cannot-afford {
+    opacity: 0.7;
+    border-color: #E74C3C;
+}
+
+.clickable-item.cannot-afford::after {
+    content: '修为不足';
+    background-color: #E74C3C;
+}
+
+/* 页脚样式 */
+#footer {
+    background-color: #F0F0F0;
+    padding: 1rem;
+    text-align: center;
+    border-top: 1px solid #DDDDDD;
+    margin-top: auto; /* 确保页脚始终在底部 */
+}
+
+#version-info {
+    font-size: 0.8rem;
+    color: #666666;
+    margin-bottom: 0.3rem;
+}
+
+#copyright {
+    font-size: 0.8rem;
+    color: #888888;
+}
+
+/* 响应式布局 - 平板及以上设备显示三列布局 */
+@media (min-width: 768px) {
+    #main-content {
+        flex-direction: row; /* 改为横向排列 */
+    }
+    
+    #left-panel {
+        flex: 1; /* 占据1份宽度 */
+        min-width: 250px; /* 设置最小宽度 */
+    }
+    
+    #middle-panel {
+        flex: 2; /* 占据2份宽度 */
+        margin: 0 1rem; /* 在中间添加左右外边距 */
+    }
+    
+    #right-panel {
+        flex: 1; /* 占据1份宽度 */
+        min-width: 250px; /* 设置最小宽度 */
+    }
+    
+    .panel {
+        margin-bottom: 0; /* 移除在大屏幕下的底部外边距 */
+    }
+
+    .panel-header .buy-amount-selector {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+}
+
+/* 按钮通用动效 */
+button {
+    transition: transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* 响应式布局优化 - 更小的设备 */
+@media (max-width: 480px) {
+    .header-container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .header-right {
+        justify-content: center;
+    }
+    
+    #header h1 {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+    
+    .panel {
+        padding: 0.8rem;
+    }
+    
+    .action-btn {
+        padding: 0.6rem 1.2rem;
+    }
+
+    .panel-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .panel-header .buy-amount-selector {
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.5rem;
+    }
+} 

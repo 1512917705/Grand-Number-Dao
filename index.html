@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大数修仙之葛立恒数</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- 后续会添加JavaScript文件 -->
+</head>
+<body>
+    <!-- 页眉区域 -->
+    <header id="header">
+        <div class="header-container">
+            <div class="header-left">
+                <h1>大数修仙</h1>
+            </div>
+            <div class="header-right">
+                <button id="import-btn" class="header-btn">导入</button>
+                <button id="export-btn" class="header-btn">导出</button>
+                <button id="settings-btn" class="header-btn">⚙️ 设置</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main id="main-content">
+        <!-- 左侧面板 - 技能相关区域 -->
+        <div id="left-panel" class="panel">
+            <div class="panel-header">
+                <h2>技能与功法</h2>
+                <button id="toggle-left-panel" class="toggle-btn">◀</button>
+            </div>
+            <div id="skills-container">
+                <!-- 这里将放置技能按钮和功法选择 -->
+                <div id="manual-actions">
+                    <button id="meditate-btn" class="action-btn">打坐修炼</button>
+                    <div id="click-info">每次点击获得: <span id="click-value">1</span> 修为</div>
+                </div>
+                <div id="cultivation-methods">
+                    <h3>修炼功法</h3>
+                    <!-- 功法列表将通过JavaScript动态生成 -->
+                    <div class="cultivation-method">
+                        <span class="method-name">基础吐纳术</span>
+                        <span class="method-level">等级: 1</span>
+                        <span class="method-effect">效果: 每秒消耗1灵气产生1修为</span>
+                        <button class="upgrade-btn">升级</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 中间面板 - 各种数值信息区域 -->
+        <div id="middle-panel" class="panel">
+            <h2>修炼状态</h2>
+            <div id="resources">
+                <div class="resource">
+                    <span class="resource-name">修为:</span>
+                    <span id="cultivation-points" class="resource-value">0</span>
+                </div>
+                <div class="resource">
+                    <span class="resource-name">灵气:</span>
+                    <span id="spiritual-energy" class="resource-value">0</span>
+                </div>
+                <div class="resource">
+                    <span class="resource-name">法力:</span>
+                    <span id="mana" class="resource-value">0</span>
+                </div>
+            </div>
+            
+            <div id="progress-container">
+                <h3>境界进度</h3>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="realm-progress"></div>
+                </div>
+                <div id="realm-progress-text">凡境: 0/1000</div>
+            </div>
+            
+            <div id="stats-container">
+                <h3>修炼统计</h3>
+                <!-- 各种统计数据将在这里显示 -->
+                <div class="stat-item">总点击次数: <span id="total-clicks">0</span></div>
+                <div class="stat-item">灵气获取速度: <span id="energy-per-second">0</span>/秒</div>
+            </div>
+        </div>
+
+        <!-- 右侧面板 - 自动化设备区域 -->
+        <div id="right-panel" class="panel">
+            <div class="panel-header">
+                <h2>修炼辅助</h2>
+                <div class="buy-amount-selector">
+                    <button class="amount-btn" data-amount="1">x1</button>
+                    <button class="amount-btn" data-amount="100">x100</button>
+                    <button class="amount-btn" data-amount="half">x一半</button>
+                    <button class="amount-btn" data-amount="max">x最大</button>
+                </div>
+            </div>
+            <div id="automation-container">
+                <!-- 自动化设备列表将通过JavaScript动态生成 -->
+                <h3>聚灵设施</h3>
+                <div class="automation-item clickable-item" data-item="spirit-gathering-array">
+                    <span class="item-name">聚灵阵</span>
+                    <span class="item-level">数量: 0</span>
+                    <span class="item-effect">效果: 每秒产生5灵气</span>
+                    <div class="item-cost">成本: 100修为</div>
+                </div>
+                
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚区域 -->
+    <footer id="footer">
+        <div id="version-info">版本: 0.1.0 Alpha</div>
+        <div id="copyright">© 2023 大数修仙之葛立恒数</div>
+    </footer>
+
+    <!-- JavaScript文件将在这里引入 -->
+    <script src="js/main.js" type="module"></script>
+</body>
+</html> 

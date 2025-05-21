@@ -360,6 +360,28 @@ body {
     background-color: #E74C3C;
 }
 
+/* 自动吐纳样式 */
+#auto-tuna-container {
+    margin-top: 1.5rem;
+    padding: 0.8rem;
+    background-color: #FFFFFF;
+    border: 1px solid #EEEEEE;
+    border-radius: 4px;
+}
+
+.auto-tuna-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+#upgrade-auto-tuna-btn.disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
 /* 页脚样式 */
 #footer {
     background-color: #F0F0F0;
@@ -456,4 +478,360 @@ button:active {
         grid-template-columns: 1fr 1fr;
         gap: 0.5rem;
     }
+}
+
+/* 页签样式 */
+.tab-buttons {
+    display: flex;
+    border-bottom: 1px solid #DDDDDD;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+.tab-btn {
+    padding: 0.5rem 1rem;
+    margin-right: 0.5rem;
+    background-color: #F0F0F0;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px 4px 0 0;
+    border-bottom: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.tab-btn:hover {
+    background-color: #E8E8E8;
+}
+
+.tab-btn.active {
+    background-color: #3498db;
+    color: white;
+    border-color: #2980b9;
+    position: relative;
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #3498db;
+}
+
+.tab-content {
+    display: none;
+    padding: 0.5rem 0;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* 自动保存通知样式 */
+#auto-save-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    z-index: 1001;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
+    white-space: nowrap;
+    display: inline-block;
+    width: auto;  /* 确保宽度自适应内容 */
+    min-width: auto;  /* 移除最小宽度限制 */
+    max-width: none;  /* 移除最大宽度限制 */
+}
+
+#auto-save-notification.show {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* 设置按钮和下拉菜单样式 */
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+.settings-container {
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+}
+
+#settings-btn {
+    padding: 0.5rem 1rem;
+    background-color: #FFFFFF;
+    border: 1px solid #DDDDDD;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+#settings-btn:hover {
+    background-color: #f0f0f0;
+}
+
+#settings-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 5px);
+    background-color: white;
+    min-width: 180px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    padding: 8px 0;
+}
+
+#settings-menu.show {
+    display: block;
+}
+
+.settings-menu-item {
+    display: block;
+    width: 100%;
+    padding: 10px 24px;
+    text-align: left;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #333;
+    white-space: nowrap;
+}
+
+.settings-menu-item:hover {
+    background-color: #f5f5f5;
+}
+
+.settings-menu-item-danger {
+    color: #dc3545;
+}
+
+.settings-menu-item-danger:hover {
+    background-color: #dc3545;
+    color: white;
+}
+
+/* 模态窗口样式 - 用于导入导出和自动保存 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-content h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+}
+
+.modal-content p {
+    margin: 0 0 10px 0;
+    color: #666;
+}
+
+.modal-content textarea {
+    width: 100%;
+    height: 150px;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    font-family: monospace;
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.modal-buttons button:first-child {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.modal-buttons button:last-child {
+    background-color: #f44336;
+    color: white;
+}
+
+.modal-buttons button:hover {
+    opacity: 0.9;
+}
+
+/* 确认对话框样式 - 用于硬重置等危险操作 */
+.confirm-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.confirm-modal .modal-content {
+    background-color: #2c3e50;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 300px;
+    max-width: 50%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.confirm-modal .modal-content h3 {
+    margin: 0 0 15px 0;
+    color: #ecf0f1;
+    font-size: 1.2em;
+}
+
+.confirm-modal .modal-content p {
+    margin: 0 0 20px 0;
+    color: #bdc3c7;
+    line-height: 1.5;
+}
+
+.confirm-modal .modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.confirm-modal .modal-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.confirm-modal .modal-buttons button:first-child {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.confirm-modal .modal-buttons button:first-child:hover {
+    background-color: #c0392b;
+}
+
+.confirm-modal .modal-buttons button:last-child {
+    background-color: #7f8c8d;
+    color: white;
+}
+
+.confirm-modal .modal-buttons button:last-child:hover {
+    background-color: #6c7a7d;
+}
+
+/* 通用通知样式 */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 24px;
+    border-radius: 4px;
+    color: white;
+    font-size: 14px;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    z-index: 1000;
+}
+
+.notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.notification.success {
+    background-color: #2ecc71;
+}
+
+.notification.error {
+    background-color: #e74c3c;
+}
+
+.notification.warning {
+    background-color: #f1c40f;
+}
+
+/* 单位设置样式 */
+.unit-settings-options {
+    margin: 20px 0;
+}
+
+.unit-settings-options label {
+    display: block;
+    margin-bottom: 10px;
+    color: #333;
+    font-weight: bold;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+/* 确保模态框默认隐藏 */
+#unit-settings-modal {
+    display: none;
 } 

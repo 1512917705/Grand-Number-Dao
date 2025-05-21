@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>大数修仙之葛立恒数</title>
     <link rel="stylesheet" href="css/style.css">
-    <!-- 后续会添加JavaScript文件 -->
 </head>
 <body>
+
     <!-- 页眉区域 -->
     <header id="header">
         <div class="header-container">
@@ -15,9 +15,17 @@
                 <h1>大数修仙</h1>
             </div>
             <div class="header-right">
-                <button id="import-btn" class="header-btn">导入</button>
-                <button id="export-btn" class="header-btn">导出</button>
-                <button id="settings-btn" class="header-btn">⚙️ 设置</button>
+                <div id="auto-save-notification">游戏已自动保存</div>
+                <div class="settings-container">
+                    <!-- 设置按钮 -->
+                    <button id="settings-btn" class="header-btn">⚙️</button>
+                    <div id="settings-menu" class="settings-menu">
+                        <button id="menu-import-btn" class="settings-menu-item">导入存档</button>
+                        <button id="menu-export-btn" class="settings-menu-item">导出存档</button>
+                        <button id="menu-unit-settings-btn" class="settings-menu-item">单位设置</button>
+                        <button id="menu-hard-reset-btn" class="settings-menu-item settings-menu-item-danger">硬重置游戏</button>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
@@ -36,16 +44,8 @@
                     <button id="meditate-btn" class="action-btn">打坐修炼</button>
                     <div id="click-info">每次点击获得: <span id="click-value">1</span> 修为</div>
                 </div>
-                <div id="cultivation-methods">
-                    <h3>修炼功法</h3>
-                    <!-- 功法列表将通过JavaScript动态生成 -->
-                    <div class="cultivation-method">
-                        <span class="method-name">基础吐纳术</span>
-                        <span class="method-level">等级: 1</span>
-                        <span class="method-effect">效果: 每秒消耗1灵气产生1修为</span>
-                        <button class="upgrade-btn">升级</button>
-                    </div>
-                </div>
+                
+                <!-- 移除自动吐纳功能区域，将其移至右侧修为页签下 -->
             </div>
         </div>
 
@@ -76,10 +76,11 @@
             </div>
             
             <div id="stats-container">
-                <h3>修炼统计</h3>
+                <h3>统计数据</h3>
                 <!-- 各种统计数据将在这里显示 -->
                 <div class="stat-item">总点击次数: <span id="total-clicks">0</span></div>
                 <div class="stat-item">灵气获取速度: <span id="energy-per-second">0</span>/秒</div>
+                <div class="stat-item">修为获取速度: <span id="cultivation-per-second">0</span>/秒</div>
             </div>
         </div>
 
@@ -94,16 +95,33 @@
                     <button class="amount-btn" data-amount="max">x最大</button>
                 </div>
             </div>
-            <div id="automation-container">
-                <!-- 自动化设备列表将通过JavaScript动态生成 -->
+            
+            <!-- 添加页签按钮 -->
+            <div class="tab-buttons" id="right-panel-tabs">
+                <button class="tab-btn active" data-tab-target="#lingqi-tab-content">灵气</button>
+                <button class="tab-btn" data-tab-target="#xiuwei-tab-content">修为</button>
+            </div>
+            
+            <!-- 灵气页签内容 -->
+            <div id="lingqi-tab-content" class="tab-content active">
                 <h3>聚灵设施</h3>
                 <div class="automation-item clickable-item" data-item="spirit-gathering-array">
                     <span class="item-name">聚灵阵</span>
                     <span class="item-level">数量: 0</span>
                     <span class="item-effect">效果: 每秒产生5灵气</span>
-                    <div class="item-cost">成本: 100修为</div>
+                    <div class="item-cost">成本: 10修为</div>
                 </div>
-                
+            </div>
+            
+            <!-- 修为页签内容 -->
+            <div id="xiuwei-tab-content" class="tab-content">
+                <h3>吐纳效率</h3>
+                <div class="automation-item clickable-item" data-item="auto-tuna">
+                    <span class="item-name">自动吐纳</span>
+                    <span class="item-level">等级: <span id="auto-tuna-level">0</span></span>
+                    <span class="item-effect">效果: <span id="auto-tuna-effect">消耗0灵气/秒, 产出0修为/秒</span></span>
+                    <div class="item-cost">成本: <span id="auto-tuna-cost">10</span>修为</div>
+                </div>
             </div>
         </div>
     </main>
@@ -113,6 +131,29 @@
         <div id="version-info">版本: 0.1.0 Alpha</div>
         <div id="copyright">© 2023 大数修仙之葛立恒数</div>
     </footer>
+
+    <!-- 单位设置模态框 -->
+    <div id="unit-settings-modal" class="modal">
+        <div class="modal-content">
+            <h3>单位设置</h3>
+            <div class="unit-settings-options">
+                <label>数字显示格式：</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="numberFormatOptions" value="scientific">
+                        科学计数法
+                    </label>
+                    <label>
+                        <input type="radio" name="numberFormatOptions" value="chinese">
+                        中文单位
+                    </label>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button id="unit-settings-close-btn">关闭</button>
+            </div>
+        </div>
+    </div>
 
     <!-- JavaScript文件将在这里引入 -->
     <script src="js/main.js" type="module"></script>

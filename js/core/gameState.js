@@ -1,5 +1,7 @@
 // 导入游戏配置
 import { REALMS_DATA } from '../data/realmsData.js';
+import { config } from '../config.js';
+import { calculateAutomationItemUIData } from '../utils/automationUtils.js';
 
 /**
  * 获取初始游戏状态
@@ -27,7 +29,9 @@ function getInitialGameState() {
             highestRealm: 0,          // 达到过的最高境界
             totalCultivationGained: 0, // 累计获得的修为
             totalSpiritGained: 0,     // 累计获得的灵气
-            totalManaGained: 0        // 累计获得的法力
+            totalManaGained: 0,       // 累计获得的法力
+            energyPerSecond: 0,        // 每秒能量
+            cultivationPerSecond: 0    // 每秒修为
         },
 
         // 境界系统
@@ -100,7 +104,13 @@ function getInitialGameState() {
             musicEnabled: true,      // 音乐开关
             notifications: true,     // 通知开关
             theme: 'default'         // 界面主题
-        }
+        },
+
+        // 购买数量
+        buyAmount: "1",
+
+        // 预计算的UI数据
+        precalculatedItemUIData: []
     };
 }
 
@@ -109,25 +119,87 @@ let gameState = getInitialGameState();
 
 /**
  * 初始化游戏状态
- * @param {Object} [loadedData=null] - 从存档加载的数据
+ * @param {Object} [savedData=null] - 从存档加载的数据
  */
-function initializeGameState(loadedData = null) {
-    if (loadedData) {
-        // 深拷贝初始状态
-        const initialState = getInitialGameState();
-        
-        // 合并加载的数据
-        gameState = deepMerge(initialState, loadedData);
-        
-        // 更新统计信息
-        gameState.stats.lastSaveTime = Date.now();
-        gameState.stats.sessionStartTime = Date.now();
-        
-        console.log("游戏状态已从存档加载。");
-    } else {
-        gameState = getInitialGameState();
-        console.log("游戏状态已初始化为新游戏。");
+function initializeGameState(savedData = null) {
+    // 基础游戏状态
+    gameState = {
+        resources: {
+            cultivationPoints: 0,
+            spiritualEnergy: 0,
+            mana: 0
+        },
+        stats: {
+            totalClicks: 0,
+            energyPerSecond: 0,
+            cultivationPerSecond: 0
+        },
+        realm: {
+            currentRealmIndex: 0
+        },
+        automation: {
+            "spirit-gathering-array": {
+                count: 1,
+                baseEffect: config.gameBalance.automation["spirit-gathering-array"].baseEffect,
+                effect: config.gameBalance.automation["spirit-gathering-array"].baseEffect
+            },
+            "auto-tuna": {
+                count: 0,
+                baseSpiritConsumedPerSecond: config.gameBalance.automation["auto-tuna"].baseSpiritConsumedPerSecond,
+                baseCultivationGainedPerSecond: config.gameBalance.automation["auto-tuna"].baseCultivationGainedPerSecond,
+                currentSpiritConsumed: 0,
+                currentCultivationGained: 0
+            }
+        },
+        buyAmount: "1", // 默认购买数量
+        precalculatedItemUIData: [] // 初始化预计算的UI数据
+    };
+
+    // 如果有存档数据，则加载存档
+    if (savedData) {
+        // 加载资源数据
+        if (savedData.resources) {
+            gameState.resources = { ...gameState.resources, ...savedData.resources };
+        }
+
+        // 加载统计数据
+        if (savedData.totalClicks) {
+            gameState.stats.totalClicks = savedData.totalClicks;
+        }
+
+        // 加载境界数据
+        if (savedData.currentRealmIndex !== undefined) {
+            gameState.realm.currentRealmIndex = savedData.currentRealmIndex;
+        }
+
+        // 加载自动化设备数据
+        if (savedData.automation) {
+            if (savedData.automation["spirit-gathering-array"]) {
+                gameState.automation["spirit-gathering-array"].count = 
+                    savedData.automation["spirit-gathering-array"].count;
+                gameState.automation["spirit-gathering-array"].effect = 
+                    savedData.automation["spirit-gathering-array"].effect;
+            }
+            if (savedData.automation["auto-tuna"]) {
+                gameState.automation["auto-tuna"].count = 
+                    savedData.automation["auto-tuna"].count;
+                gameState.automation["auto-tuna"].currentSpiritConsumed = 
+                    savedData.automation["auto-tuna"].currentSpiritConsumed;
+                gameState.automation["auto-tuna"].currentCultivationGained = 
+                    savedData.automation["auto-tuna"].currentCultivationGained;
+            }
+        }
+
+        // 加载购买数量设置
+        if (savedData.buyAmount) {
+            gameState.buyAmount = savedData.buyAmount;
+        }
     }
+
+    // 计算初始的UI数据
+    gameState.precalculatedItemUIData = calculateAutomationItemUIData(gameState);
+
+    return gameState;
 }
 
 /**
@@ -155,6 +227,10 @@ function deepMerge(target, source) {
  * @returns {Object} 游戏状态对象
  */
 function getGameState() {
+    // 确保返回一个有效的状态对象
+    if (!gameState) {
+        gameState = getInitialGameState();
+    }
     return gameState;
 }
 
@@ -183,11 +259,11 @@ function updateGameState(path, value) {
 function resetGameState() {
     gameState = getInitialGameState();
     console.log("游戏状态已重置。");
+    return gameState;
 }
 
 // 导出
 export {
-    gameState,
     getInitialGameState,
     initializeGameState,
     getGameState,

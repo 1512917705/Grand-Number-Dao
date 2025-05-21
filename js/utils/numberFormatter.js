@@ -1,5 +1,7 @@
+// 数字格式化工具
+
 // 中文单位定义
-export const CHINESE_UNITS = [
+const CHINESE_UNITS = [
     { name: "古戈尔", power: 100, threshold: 1e100 },
     { name: "那由他", power: 72, threshold: 1e72 },
     { name: "阿僧祗", power: 64, threshold: 1e64 },
@@ -18,38 +20,42 @@ export const CHINESE_UNITS = [
 ];
 
 // 格式化数字
-export function formatNumber(value, precision = 2) {
+export function formatNumber(value, displayFormat = "scientific") {
     if (value === undefined || value === null || isNaN(value)) return "0";
     if (value === 0) return "0";
 
     const localSign = value < 0 ? "-" : "";
     const absValue = Math.abs(value);
 
-    // 从配置中获取当前显示格式
-    const displayFormat = window.config?.numberDisplayFormat || "chinese";
-
     if (displayFormat === "scientific") {
         if (absValue < 10000) {
             return localSign + absValue.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
-                maximumFractionDigits: precision
+                maximumFractionDigits: 2
             });
         } else {
-            return localSign + absValue.toExponential(precision);
+            // 将数字转换为科学计数法格式
+            const exp = Math.floor(Math.log10(absValue));
+            const coef = absValue / Math.pow(10, exp);
+            // 格式化系数，保留2位小数
+            const formattedCoef = coef.toFixed(2);
+            // 去除不必要的尾随零
+            const cleanCoef = parseFloat(formattedCoef).toString();
+            return localSign + cleanCoef + "×10^" + exp;
         }
     } else if (displayFormat === "chinese") {
         for (const unit of CHINESE_UNITS) {
             if (absValue >= unit.threshold) {
                 const prefixVal = absValue / unit.threshold;
                 // 格式化前缀值，去除不必要的尾随零
-                const formattedPrefix = parseFloat(prefixVal.toFixed(precision)).toString();
+                const formattedPrefix = parseFloat(prefixVal.toFixed(2)).toString();
                 return localSign + formattedPrefix + unit.name;
             }
         }
         // 如果数字小于所有定义的大单位阈值
         return localSign + absValue.toLocaleString(undefined, {
             minimumFractionDigits: 0,
-            maximumFractionDigits: precision
+            maximumFractionDigits: 2
         });
     }
 

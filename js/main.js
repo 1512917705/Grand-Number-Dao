@@ -142,66 +142,7 @@ function formatNumber(value) {
 }
 
 // 游戏状态
-const gameState = {
-    // 资源
-    resources: {
-        cultivationPoints: 0,     // 修为
-        spiritualEnergy: 10,      // 灵气 - 初始给10点灵气让玩家能开始打坐
-        mana: 0                   // 法力
-    },
-    
-    // 点击数据
-    clicks: {
-        total: 0,                 // 总点击次数
-        value: config.gameBalance.clickValue  // 每次点击消耗的灵气数量
-    },
-    
-    // 转化比例
-    conversion: {
-        rate: config.gameBalance.conversionRate  // 1点灵气转化为1点修为
-    },
-    
-    // 境界数据
-    realm: {
-        currentRealmIndex: 0       // 当前境界索引，指向REALMS_DATA中的境界
-    },
-    
-    // 自动化设备
-    automation: {
-        "spirit-gathering-array": {
-            name: "聚灵阵",
-            count: 1,             // 初始默认有1个聚灵阵
-            baseCost: config.gameBalance.automation["spirit-gathering-array"].baseCost,
-            costMultiplier: config.gameBalance.automation["spirit-gathering-array"].costMultiplier,
-            baseEffect: config.gameBalance.automation["spirit-gathering-array"].baseEffect,
-            effect: config.gameBalance.automation["spirit-gathering-array"].baseEffect
-        },
-        "auto-tuna": {
-            name: "自动吐纳",
-            count: 0,                                // 等级
-            baseCost: config.gameBalance.automation["auto-tuna"].baseCost,
-            costMultiplier: config.gameBalance.automation["auto-tuna"].costMultiplier,
-            baseSpiritConsumedPerSecond: config.gameBalance.automation["auto-tuna"].baseSpiritConsumedPerSecond,
-            baseCultivationGainedPerSecond: config.gameBalance.automation["auto-tuna"].baseCultivationGainedPerSecond,
-            currentSpiritConsumed: 0,                // 当前每秒消耗的灵气总量
-            currentCultivationGained: 0              // 当前每秒产出的修为总量
-        }
-    },
-    
-    // 统计数据
-    stats: {
-        energyPerSecond: 0,        // 每秒灵气获取速度
-        cultivationPerSecond: 0    // 每秒修为获取速度
-    },
-    
-    // 购买数量设置
-    buyAmount: "1",               // 默认购买1个
-
-    // 节拍数据
-    tickData: {
-        meditationClicksThisTick: 0  // 本节拍内的打坐点击次数
-    }
-};
+import { gameState, initializeGameState, getGameState, updateGameState } from './core/gameState.js';
 
 // 收集需要保存的游戏数据
 function gatherDataForSave() {
@@ -211,7 +152,7 @@ function gatherDataForSave() {
             spiritualEnergy: gameState.resources.spiritualEnergy,
             mana: gameState.resources.mana
         },
-        totalClicks: gameState.clicks.total,
+        totalClicks: gameState.stats.totalClicks,
         currentRealmIndex: gameState.realm.currentRealmIndex,
         automationLevels: {
             spiritGatheringArrayLevel: gameState.automation["spirit-gathering-array"].count,
@@ -230,7 +171,7 @@ function attemptAutoSave() {
     try {
         const dataToSave = gatherDataForSave();
         const jsonString = JSON.stringify(dataToSave);
-        localStorage.setItem('xianxiaGameSave', jsonString);
+        localStorage.setItem('grandNumberDaoSave', jsonString);
         showAutoSaveNotification();
         if (config.debugMode) {
             console.log("游戏已自动保存于", new Date().toLocaleString());
@@ -242,49 +183,17 @@ function attemptAutoSave() {
 
 // 加载游戏数据
 function loadGameData() {
-    const savedJson = localStorage.getItem('xianxiaGameSave');
-    if (savedJson) {
-        try {
-            const loadedData = JSON.parse(savedJson);
-
-            // 应用数据到 gameState
-            gameState.resources.cultivationPoints = loadedData.resources.cultivationPoints || 0;
-            gameState.resources.spiritualEnergy = loadedData.resources.spiritualEnergy || 0;
-            gameState.resources.mana = loadedData.resources.mana || 0;
-            gameState.clicks.total = loadedData.totalClicks || 0;
-            gameState.realm.currentRealmIndex = loadedData.currentRealmIndex || 0;
-
-            // 处理自动化设备等级
-            if (loadedData.automationLevels) {
-                gameState.automation["spirit-gathering-array"].count = loadedData.automationLevels.spiritGatheringArrayLevel || 0;
-                gameState.automation["auto-tuna"].count = loadedData.automationLevels.autoTunaLevel || 0;
-            } else {
-                // 处理旧存档可能没有 automationLevels 的情况
-                gameState.automation["spirit-gathering-array"].count = 0;
-                gameState.automation["auto-tuna"].count = 0;
-            }
-
-            // 加载设置
-            if (loadedData.settings && loadedData.settings.numberDisplayFormat) {
-                config.numberDisplayFormat = loadedData.settings.numberDisplayFormat;
-            }
-
-            // 重新计算自动化效果
+    try {
+        const savedData = localStorage.getItem('grandNumberDaoSave');
+        if (savedData) {
+            const loadedData = JSON.parse(savedData);
+            initializeGameState(loadedData);
             reinitializeAutomationEffects();
-
-            if (config.debugMode) {
-                console.log("游戏数据已加载，上次保存时间:", new Date(loadedData.lastSaveTime).toLocaleString());
-            }
-        } catch (error) {
-            console.error("加载已保存的游戏数据失败:", error);
-            localStorage.removeItem('xianxiaGameSave'); // 清除损坏的存档
+            updateUI();
         }
-    } else if (config.debugMode) {
-        console.log("未找到存档，开始新游戏");
+    } catch (error) {
+        console.error('加载游戏数据失败:', error);
     }
-
-    // 更新UI以反映当前状态
-    updateUI();
 }
 
 // 重新初始化自动化效果
@@ -312,41 +221,13 @@ function showAutoSaveNotification() {
 
 // 应用导入的数据到游戏状态
 function applyImportedDataToGameState(loadedData) {
-    // 应用资源数据
-    gameState.resources.cultivationPoints = loadedData.resources.cultivationPoints || 0;
-    gameState.resources.spiritualEnergy = loadedData.resources.spiritualEnergy || 0;
-    gameState.resources.mana = loadedData.resources.mana || 0;
-    
-    // 应用点击数据
-    gameState.clicks.total = loadedData.totalClicks || 0;
-    
-    // 应用境界数据
-    gameState.realm.currentRealmIndex = loadedData.currentRealmIndex || 0;
-    
-    // 应用自动化设备等级
-    if (loadedData.automationLevels) {
-        gameState.automation["spirit-gathering-array"].count = loadedData.automationLevels.spiritGatheringArrayLevel || 0;
-        gameState.automation["auto-tuna"].count = loadedData.automationLevels.autoTunaLevel || 0;
-    } else {
-        // 处理旧存档可能没有 automationLevels 的情况
-        gameState.automation["spirit-gathering-array"].count = 0;
-        gameState.automation["auto-tuna"].count = 0;
-    }
+    initializeGameState(loadedData);
 
-    // 应用设置
-    if (loadedData.settings && loadedData.settings.numberDisplayFormat) {
-        config.numberDisplayFormat = loadedData.settings.numberDisplayFormat;
-    }
-    
-    // 重新计算自动化效果
-    reinitializeAutomationEffects();
-    
-    // 更新境界进度
-    updateRealmProgress();
-    
-    // 立即执行一次自动保存
-    attemptAutoSave();
-    
+    if (typeof reinitializeAutomationEffects === 'function') reinitializeAutomationEffects();
+    if (typeof updateRealmProgress === 'function') updateRealmProgress();
+    if (typeof updateUI === 'function') updateUI();
+    if (typeof attemptAutoSave === 'function') attemptAutoSave();
+
     if (config.debugMode) {
         console.log('游戏数据已成功导入:', loadedData);
     }
@@ -432,70 +313,6 @@ function showImportSuccessNotification() {
     }, 100);
 }
 
-// 获取初始游戏状态
-function getInitialGameState() {
-    return {
-        // 资源
-        resources: {
-            cultivationPoints: 0,     // 修为
-            spiritualEnergy: 10,      // 灵气 - 初始给10点灵气让玩家能开始打坐
-            mana: 0                   // 法力
-        },
-        
-        // 点击数据
-        clicks: {
-            total: 0,                 // 总点击次数
-            value: config.gameBalance.clickValue  // 每次点击消耗的灵气数量
-        },
-        
-        // 转化比例
-        conversion: {
-            rate: config.gameBalance.conversionRate  // 1点灵气转化为1点修为
-        },
-        
-        // 境界数据
-        realm: {
-            currentRealmIndex: 0       // 当前境界索引，指向REALMS_DATA中的境界
-        },
-        
-        // 自动化设备
-        automation: {
-            "spirit-gathering-array": {
-                name: "聚灵阵",
-                count: 1,             // 初始默认有1个聚灵阵
-                baseCost: config.gameBalance.automation["spirit-gathering-array"].baseCost,
-                costMultiplier: config.gameBalance.automation["spirit-gathering-array"].costMultiplier,
-                baseEffect: config.gameBalance.automation["spirit-gathering-array"].baseEffect,
-                effect: config.gameBalance.automation["spirit-gathering-array"].baseEffect
-            },
-            "auto-tuna": {
-                name: "自动吐纳",
-                count: 0,                                // 等级
-                baseCost: config.gameBalance.automation["auto-tuna"].baseCost,
-                costMultiplier: config.gameBalance.automation["auto-tuna"].costMultiplier,
-                baseSpiritConsumedPerSecond: config.gameBalance.automation["auto-tuna"].baseSpiritConsumedPerSecond,
-                baseCultivationGainedPerSecond: config.gameBalance.automation["auto-tuna"].baseCultivationGainedPerSecond,
-                currentSpiritConsumed: 0,                // 当前每秒消耗的灵气总量
-                currentCultivationGained: 0              // 当前每秒产出的修为总量
-            }
-        },
-        
-        // 统计数据
-        stats: {
-            energyPerSecond: 0,        // 每秒灵气获取速度
-            cultivationPerSecond: 0    // 每秒修为获取速度
-        },
-        
-        // 购买数量设置
-        buyAmount: "1",               // 默认购买1个
-
-        // 节拍数据
-        tickData: {
-            meditationClicksThisTick: 0  // 本节拍内的打坐点击次数
-        }
-    };
-}
-
 // 显示确认对话框
 function showConfirmationModal({ title, message, confirmButtonText, confirmButtonClass, onConfirm, cancelButtonText, onCancel }) {
     const modal = document.createElement('div');
@@ -559,22 +376,12 @@ function hardResetGame() {
         confirmButtonText: "重置",
         confirmButtonClass: "danger-button",
         onConfirm: () => {
-            // 清除存档
-            localStorage.removeItem('xianxiaGameSave');
-            
-            // 重置游戏状态
-            const initialState = getInitialGameState();
-            Object.assign(gameState, initialState);
-            
-            // 重新计算自动化效果
-            reinitializeAutomationEffects();
-            
-            // 更新UI
-            updateUI();
-            
-            // 显示通知
+            localStorage.removeItem('grandNumberDaoSave');
+            initializeGameState();
+
+            if (typeof reinitializeAutomationEffects === 'function') reinitializeAutomationEffects();
+            if (typeof updateUI === 'function') updateUI();
             showNotification("游戏已重置", "success");
-            
             if (config.debugMode) {
                 console.log("游戏已重置为初始状态");
             }
@@ -823,10 +630,10 @@ function toggleLeftPanel() {
 // 处理修炼按钮点击 - 修改为只记录点击次数
 function handleMeditate() {
     // 增加点击次数
-    gameState.clicks.total++;
+    gameState.stats.totalClicks++;
     
     // 增加本节拍内的点击计数
-    gameState.tickData.meditationClicksThisTick++;
+    tickData.meditationClicksThisTick++;
 }
 
 // 购买自动化设备
@@ -971,11 +778,11 @@ function processTick() {
     }
     
     // 阶段C：处理累计的手动操作
-    const clicksToProcess = gameState.tickData.meditationClicksThisTick;
-    gameState.tickData.meditationClicksThisTick = 0;
+    const clicksToProcess = tickData.meditationClicksThisTick;
+    tickData.meditationClicksThisTick = 0;
     
-    const spiritPerClick = gameState.clicks.value;
-    const cultivationPerClick = gameState.conversion.rate;
+    const spiritPerClick = config.gameBalance.clickValue;
+    const cultivationPerClick = config.gameBalance.conversionRate;
     
     for (let i = 0; i < clicksToProcess; i++) {
         if (availableSpirit > 0) {
@@ -997,6 +804,9 @@ function processTick() {
     
     // 阶段E：其他周期性更新
     updateRealmProgress();
+    
+    // 更新节拍时间
+    tickData.lastTickTime = Date.now();
 }
 
 // 游戏主循环，每秒执行一次
@@ -1033,10 +843,10 @@ function updateUI() {
     elements.cultivationPoints.textContent = formatNumber(gameState.resources.cultivationPoints);
     elements.spiritualEnergy.textContent = formatNumber(gameState.resources.spiritualEnergy);
     elements.mana.textContent = formatNumber(gameState.resources.mana);
-    elements.clickValue.textContent = formatNumber(gameState.conversion.rate);
-    elements.totalClicks.textContent = gameState.clicks.total;
-    elements.energyPerSecond.textContent = formatNumber(gameState.stats.energyPerSecond);
-    elements.cultivationPerSecond.textContent = formatNumber(gameState.stats.cultivationPerSecond);
+    elements.clickValue.textContent = formatNumber(config.gameBalance.conversionRate);
+    elements.totalClicks.textContent = gameState.stats.totalClicks;
+    elements.energyPerSecond.textContent = formatNumber(gameState.stats.energyPerSecond || 0);
+    elements.cultivationPerSecond.textContent = formatNumber(gameState.stats.cultivationPerSecond || 0);
     
     // 更新境界显示
     updateRealmUI();
@@ -1084,6 +894,9 @@ function updateRealmUI() {
 
 // 更新自动化设备UI
 function updateAutomationUI() {
+    // 先重新初始化自动化效果
+    reinitializeAutomationEffects();
+    
     // 遍历所有自动化设备元素
     document.querySelectorAll('.automation-item.clickable-item').forEach(itemElement => {
         const itemId = itemElement.dataset.item;
@@ -1347,4 +1160,21 @@ function initUnitSettings() {
 document.addEventListener('DOMContentLoaded', () => {
     initUnitSettings();
     initGame();
-}); 
+});
+
+// 获取游戏状态
+const state = getGameState();
+
+// 更新资源
+updateGameState('resources.cultivationPoints', 1000);
+
+// 更新功法等级
+updateGameState('gongfas.basic-meditation.level', 5);
+
+// 更新设置
+updateGameState('settings.numberFormat', 'scientific');
+
+let tickData = {
+    meditationClicksThisTick: 0,
+    lastTickTime: Date.now()
+}; 

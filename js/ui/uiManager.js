@@ -1,6 +1,7 @@
 // UI 管理模块
 import { formatNumber } from '../utils/numberFormatter.js';
 import { REALMS_DATA } from '../data/realmsData.js';
+import { updateGameState } from '../core/gameState.js';
 
 // DOM 元素引用
 const elements = {
@@ -28,6 +29,7 @@ const elements = {
     
     // 境界进度
     realmProgress: document.getElementById('realm-progress'),
+    realmProgressBar: document.getElementById('realm-progress-bar'),
     realmProgressText: document.getElementById('realm-progress-text'),
     
     // 统计信息
@@ -80,34 +82,37 @@ function _updateResourceDisplay(resourceName, value, format) {
 }
 
 // 更新境界进度UI
-function _updateRealmProgressUI(currentRealmIndex, cultivationPoints) {
+function _updateRealmProgressUI(gameState) {
+    const realmProgress = document.getElementById('realm-progress');
+    const realmProgressText = document.getElementById('realm-progress-text');
+    
+    if (!realmProgress || !realmProgressText) {
+        console.error('找不到境界进度相关的DOM元素');
+        return;
+    }
+    
+    const currentRealmIndex = gameState.realm.currentRealmIndex;
     const currentRealm = REALMS_DATA[currentRealmIndex];
     const nextRealm = REALMS_DATA[currentRealmIndex + 1];
     
-    // 更新境界文字描述
-    if (nextRealm) {
-        elements.realmProgressText.textContent = 
-            `${currentRealm.name}: ${formatNumber(cultivationPoints)} / ${formatNumber(nextRealm.threshold)}`;
-    } else {
-        elements.realmProgressText.textContent = 
-            `${currentRealm.name}: ${formatNumber(cultivationPoints)} / --`;
+    if (!currentRealm || !nextRealm) {
+        realmProgressText.textContent = '已达最高境界';
+        realmProgress.style.width = '100%';
+        return;
     }
     
-    // 更新境界进度条
-    let progressPercent = 0;
-    if (nextRealm) {
-        const currentThreshold = currentRealm.threshold;
-        const nextThreshold = nextRealm.threshold;
-        
-        if (nextThreshold > currentThreshold) {
-            progressPercent = Math.min(100, Math.max(0, 
-                (cultivationPoints - currentThreshold) / (nextThreshold - currentThreshold) * 100));
-        }
-    } else {
-        progressPercent = 100;
-    }
+    const currentPoints = gameState.resources.cultivationPoints;
+    const threshold = nextRealm.threshold;
+    const progress = Math.min(100, (currentPoints / threshold) * 100);
     
-    elements.realmProgress.style.width = `${progressPercent}%`;
+    const numberFormat = gameState.settings?.numberDisplayFormat || 'scientific';
+    const formattedCurrent = formatNumber(currentPoints, numberFormat);
+    const formattedThreshold = formatNumber(threshold, numberFormat);
+    
+    // 修改显示格式，使用箭头表示进度方向
+    realmProgressText.textContent = `${currentRealm.name} → ${nextRealm.name} (${formattedCurrent}/${formattedThreshold})`;
+    realmProgress.style.width = `${progress}%`;
+    
 }
 
 // 更新自动化设备UI
@@ -183,7 +188,6 @@ export function updateAllUI(gameState) {
     }
 
     const format = gameState.settings?.numberDisplayFormat || 'scientific';
-    console.log('Current number display format:', format); // 添加调试日志
 
     // 更新资源显示
     _updateResourceDisplay('cultivationPoints', gameState.resources.cultivationPoints, format);
@@ -191,12 +195,12 @@ export function updateAllUI(gameState) {
     _updateResourceDisplay('mana', gameState.resources.mana, format);
     
     // 更新统计信息
-    _updateResourceDisplay('total-clicks', gameState.stats.totalClicks, format);
-    _updateResourceDisplay('energy-per-second', gameState.stats.energyPerSecond, format);
-    _updateResourceDisplay('cultivation-per-second', gameState.stats.cultivationPerSecond, format);
+    _updateResourceDisplay('totalClicks', gameState.stats.totalClicks, format);
+    _updateResourceDisplay('energyPerSecond', gameState.stats.energyPerSecond, format);
+    _updateResourceDisplay('cultivationPerSecond', gameState.stats.cultivationPerSecond, format);
     
     // 更新境界进度
-    _updateRealmProgressUI(gameState.realm.currentRealmIndex, gameState.resources.cultivationPoints);
+    _updateRealmProgressUI(gameState);
     
     // 更新自动化设备
     _updateAutomationItemsUI(gameState.automation, gameState.buyAmount, gameState.resources.cultivationPoints, gameState.precalculatedItemUIData, format);

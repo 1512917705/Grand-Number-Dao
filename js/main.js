@@ -5,28 +5,17 @@ import { REALMS_DATA } from './data/realmsData.js';
 import { initializeGameState, getGameState, updateGameState } from './core/gameState.js';
 import * as uiManager from './ui/uiManager.js';
 import { config } from './config.js';
-import { calculateAutomationItemUIData, calculateTotalCost, getMaxAffordableAmount } from './utils/automationUtils.js';
+import { calculateAutomationItemUIData } from './utils/automationUtils.js';
 import * as saveLoadManager from './core/saveLoadManager.js';
+import * as automationManager from './core/automationManager.js';
+import * as progressionManager from './core/progressionManager.js';
+import * as resourceManager from './core/resourceManager.js';
 
 // 游戏状态
 let tickData = {
     meditationClicksThisTick: 0,
     lastTickTime: Date.now()
 };
-
-// 重新初始化自动化效果
-function reinitializeAutomationEffects() {
-    const gameState = getGameState();
-    const spiritGatheringArray = gameState.automation["spirit-gathering-array"];
-    const newEffect = spiritGatheringArray.baseEffect * spiritGatheringArray.count;
-    updateGameState('automation.spirit-gathering-array.effect', newEffect);
-
-    const autoTuna = gameState.automation["auto-tuna"];
-    const newSpiritConsumed = autoTuna.baseSpiritConsumedPerSecond * autoTuna.count;
-    const newCultivationGained = autoTuna.baseCultivationGainedPerSecond * autoTuna.count;
-    updateGameState('automation.auto-tuna.currentSpiritConsumed', newSpiritConsumed);
-    updateGameState('automation.auto-tuna.currentCultivationGained', newCultivationGained);
-}
 
 // 初始化游戏
 function initGame() {
@@ -42,13 +31,11 @@ function initGame() {
         const savedData = saveLoadManager.loadGameData();
         if (savedData) {
             initializeGameState(savedData);
-            reinitializeAutomationEffects();
+            automationManager.recalculateAllAutomationEffects();
+            progressionManager.updateRealm(); // 检查初始境界
         } else {
             initializeGameState();
         }
-        
-        // 初始化境界
-        updateRealmProgress();
         
         // 注册事件监听器
         registerEventListeners();
@@ -71,16 +58,16 @@ function initGame() {
 function startAutoSave() {
     try {
         const autoSaveInterval = config.autoSaveInterval || 60000; // 默认1分钟
-        console.log(`自动保存已启动，间隔时间：${autoSaveInterval/1000}秒`);
+        // console.log(`自动保存已启动，间隔时间：${autoSaveInterval/1000}秒`);
         
         // 立即执行一次保存
         const initialSave = saveLoadManager.attemptAutoSave();
-        console.log('初始自动保存:', initialSave ? '成功' : '失败');
+        // console.log('初始自动保存:', initialSave ? '成功' : '失败');
         
         // 设置定时保存
         const autoSaveTimer = setInterval(() => {
             const success = saveLoadManager.attemptAutoSave();
-            console.log('定时自动保存:', success ? '成功' : '失败');
+            // console.log('定时自动保存:', success ? '成功' : '失败');
         }, autoSaveInterval);
         
         // 保存定时器ID，以便需要时可以清除
@@ -154,7 +141,11 @@ function registerEventListeners() {
         // 修炼按钮点击事件
         const meditateBtn = document.getElementById('meditate-btn');
         if (meditateBtn) {
-            meditateBtn.addEventListener('click', handleMeditate);
+            meditateBtn.addEventListener('click', () => {
+                if (resourceManager.processMeditationClick()) {
+                    tickData.meditationClicksThisTick++;
+                }
+            });
         } else {
             console.error('未找到修炼按钮');
         }
@@ -166,7 +157,8 @@ function registerEventListeners() {
                 item.addEventListener('click', () => {
                     const itemId = item.dataset.item;
                     if (itemId) {
-                        buyAutomation(itemId);
+                        automationManager.buyAutomationItem(itemId);
+                        uiManager.updateAllUI(getGameState());
                     } else {
                         console.error('自动化设备缺少 data-item 属性');
                     }
@@ -176,23 +168,31 @@ function registerEventListeners() {
             console.error('未找到自动化设备按钮');
         }
         
-        // 购买数量按钮事件
-        const amountBtns = document.querySelectorAll('.amount-btn');
-        if (amountBtns.length > 0) {
-            amountBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const amount = btn.dataset.amount;
-                    if (amount) {
-                        updateGameState('buyAmount', amount);
-                        uiManager.updateAllUI(getGameState());
-                    } else {
-                        console.error('购买数量按钮缺少 data-amount 属性');
-                    }
-                });
+        // 购买数量按钮
+        const buyAmountButtons = document.querySelectorAll('[data-amount]');
+        buyAmountButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const amount = button.getAttribute('data-amount');
+                if (!amount) {
+                    console.error('购买数量按钮缺少data-amount属性');
+                    return;
+                }
+                
+                // 移除所有按钮的active类
+                buyAmountButtons.forEach(btn => btn.classList.remove('active'));
+                // 给当前按钮添加active类
+                button.classList.add('active');
+                
+                // 更新购买数量设置
+                updateGameState('settings.buyAmount', amount);
+                
+                // 重新计算UI数据
+                const gameState = getGameState();
+                gameState.precalculatedItemUIData = calculateAutomationItemUIData(gameState);
+                // 更新UI显示
+                uiManager.updateAllUI(gameState);
             });
-        } else {
-            console.error('未找到购买数量按钮');
-        }
+        });
         
         // 设置按钮事件
         const settingsBtn = document.getElementById('settings-btn');
@@ -255,7 +255,7 @@ function registerEventListeners() {
                 uiManager.displayImportModal((importedString) => {
                     if (saveLoadManager.importGameData(importedString)) {
                         uiManager.showNotification('存档导入成功！');
-                        reinitializeAutomationEffects();
+                        automationManager.recalculateAllAutomationEffects();
                         uiManager.updateAllUI(getGameState());
                         // 导入后立即保存
                         const saveSuccess = saveLoadManager.attemptAutoSave();
@@ -294,7 +294,7 @@ function registerEventListeners() {
                     onConfirm: () => {
                         saveLoadManager.hardReset();
                         initializeGameState();
-                        reinitializeAutomationEffects();
+                        automationManager.recalculateAllAutomationEffects();
                         uiManager.updateAllUI(getGameState());
                     },
                     cancelButtonText: "取消"
@@ -331,90 +331,7 @@ function registerEventListeners() {
             console.error('未找到页签按钮');
         }
     } catch (error) {
-        console.error('注册事件监听器时发生错误:', error);
-    }
-}
-
-// 处理修炼点击
-function handleMeditate() {
-    const gameState = getGameState();
-    const clickValue = config.gameBalance.clickValue;
-    updateGameState('resources.cultivationPoints', gameState.resources.cultivationPoints + clickValue);
-    updateGameState('stats.totalClicks', gameState.stats.totalClicks + 1);
-    tickData.meditationClicksThisTick++;
-    uiManager.updateAllUI(gameState);
-}
-
-// 购买自动化设备
-function buyAutomation(itemId) {
-    const gameState = getGameState();
-    const buyAmount = gameState.buyAmount === "max" ? 
-        getMaxAffordableAmount(itemId, gameState) : 
-        parseInt(gameState.buyAmount) || 1;
-    const itemData = gameState.automation[itemId];
-    
-    if (!itemData) return;
-    
-    const totalCost = calculateTotalCost(itemId, buyAmount, gameState);
-    
-    if (gameState.resources.cultivationPoints >= totalCost) {
-        // 扣除修为
-        updateGameState('resources.cultivationPoints', gameState.resources.cultivationPoints - totalCost);
-        
-        // 更新设备数量
-        const newCount = itemData.count + buyAmount;
-        updateGameState(`automation.${itemId}.count`, newCount);
-        
-        // 重新计算效果
-        if (itemId === "spirit-gathering-array") {
-            const baseEffect = config.gameBalance.automation[itemId].baseEffect;
-            const newEffect = baseEffect * newCount;
-            updateGameState(`automation.${itemId}.effect`, newEffect);
-        } else if (itemId === "auto-tuna") {
-            const newSpiritConsumed = itemData.baseSpiritConsumedPerSecond * (itemData.count + buyAmount);
-            const newCultivationGained = itemData.baseCultivationGainedPerSecond * (itemData.count + buyAmount);
-            updateGameState(`automation.${itemId}.currentSpiritConsumed`, newSpiritConsumed);
-            updateGameState(`automation.${itemId}.currentCultivationGained`, newCultivationGained);
-        }
-        
-        // 更新UI
-        const newGameState = getGameState();
-        const precalculatedItemUIData = calculateAutomationItemUIData(newGameState);
-        updateGameState('precalculatedItemUIData', precalculatedItemUIData);
-        uiManager.updateAllUI(newGameState);
-    }
-}
-
-// 处理自动化效果
-function processAutomation() {
-    const gameState = getGameState();
-    
-    // 处理聚灵阵
-    const spiritGatheringArray = gameState.automation["spirit-gathering-array"];
-    if (spiritGatheringArray.count > 0) {
-        updateGameState('resources.spiritualEnergy', 
-            gameState.resources.spiritualEnergy + spiritGatheringArray.effect);
-    }
-    
-    // 处理自动吐纳
-    processAutoTuna();
-}
-
-// 处理自动吐纳
-function processAutoTuna() {
-    const gameState = getGameState();
-    const autoTuna = gameState.automation["auto-tuna"];
-    
-    if (autoTuna.count > 0) {
-        const spiritCost = autoTuna.currentSpiritConsumed;
-        const cultivationGain = autoTuna.currentCultivationGained;
-        
-        if (gameState.resources.spiritualEnergy >= spiritCost) {
-            updateGameState('resources.spiritualEnergy', 
-                gameState.resources.spiritualEnergy - spiritCost);
-            updateGameState('resources.cultivationPoints', 
-                gameState.resources.cultivationPoints + cultivationGain);
-        }
+        console.error('注册事件监听器失败:', error);
     }
 }
 
@@ -424,15 +341,15 @@ function processTick() {
     const deltaTime = (currentTime - tickData.lastTickTime) / 1000;
     tickData.lastTickTime = currentTime;
     
-    // 处理自动化效果
-    processAutomation();
+    // 处理自动化设备产出
+    automationManager.updateAutomationTick();
     
-    // 更新每秒产出统计
+    // 检查境界提升
+    progressionManager.updateRealm();
+    
+    // 重新计算UI数据
     const gameState = getGameState();
-    updateGameState('stats.energyPerSecond', 
-        gameState.automation["spirit-gathering-array"].effect);
-    updateGameState('stats.cultivationPerSecond', 
-        gameState.automation["auto-tuna"].currentCultivationGained);
+    gameState.precalculatedItemUIData = calculateAutomationItemUIData(gameState);
     
     // 更新UI
     uiManager.updateAllUI(gameState);
@@ -441,19 +358,6 @@ function processTick() {
 // 游戏主循环
 function gameLoop() {
     processTick();
-}
-
-// 更新境界进度
-function updateRealmProgress() {
-    const gameState = getGameState();
-    const currentRealmIndex = gameState.realm.currentRealmIndex;
-    const currentRealm = REALMS_DATA[currentRealmIndex];
-    const nextRealm = REALMS_DATA[currentRealmIndex + 1];
-    
-    if (nextRealm && gameState.resources.cultivationPoints >= nextRealm.threshold) {
-        updateGameState('realm.currentRealmIndex', currentRealmIndex + 1);
-        uiManager.showNotification(`恭喜突破到${nextRealm.name}！`);
-    }
 }
 
 // 启动游戏

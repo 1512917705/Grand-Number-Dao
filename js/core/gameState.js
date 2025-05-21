@@ -103,11 +103,10 @@ function getInitialGameState() {
             soundEnabled: true,      // 音效开关
             musicEnabled: true,      // 音乐开关
             notifications: true,     // 通知开关
-            theme: 'default'         // 界面主题
+            theme: 'default',        // 界面主题
+            buyAmount: '1',          // 默认购买数量
+            numberDisplayFormat: 'scientific' // 数字显示格式
         },
-
-        // 购买数量
-        buyAmount: "1",
 
         // 预计算的UI数据
         precalculatedItemUIData: []
@@ -151,7 +150,10 @@ function initializeGameState(savedData = null) {
                 currentCultivationGained: 0
             }
         },
-        buyAmount: "1", // 默认购买数量
+        settings: {
+            buyAmount: '1',
+            numberDisplayFormat: 'scientific'
+        },
         precalculatedItemUIData: [] // 初始化预计算的UI数据
     };
 
@@ -188,11 +190,6 @@ function initializeGameState(savedData = null) {
                 gameState.automation["auto-tuna"].currentCultivationGained = 
                     savedData.automation["auto-tuna"].currentCultivationGained;
             }
-        }
-
-        // 加载购买数量设置
-        if (savedData.buyAmount) {
-            gameState.buyAmount = savedData.buyAmount;
         }
     }
 

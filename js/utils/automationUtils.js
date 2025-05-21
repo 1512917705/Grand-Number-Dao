@@ -7,31 +7,39 @@ import { config } from '../config.js';
  * @returns {Array} 预计算的UI数据数组
  */
 export function calculateAutomationItemUIData(gameState) {
+    const numberFormat = gameState.settings?.numberDisplayFormat || 'scientific';
+    
     return Object.entries(gameState.automation).map(([itemId, item]) => {
         const itemConfig = config.gameBalance.automation[itemId];
         const nextCost = Math.floor(itemConfig.baseCost * Math.pow(itemConfig.costMultiplier, item.count));
         let amount = 1;
         let totalCost = nextCost;
         
-        if (gameState.buyAmount === "100") {
+        const buyAmount = gameState.settings?.buyAmount || '1';
+        
+        if (buyAmount === "100") {
             amount = 100;
             totalCost = calculateTotalCost(itemId, amount, gameState);
-        } else if (gameState.buyAmount === "half") {
+        } else if (buyAmount === "half") {
             amount = Math.max(1, Math.floor(getMaxAffordableAmount(itemId, gameState) / 2));
             totalCost = calculateTotalCost(itemId, amount, gameState);
-        } else if (gameState.buyAmount === "max") {
+        } else if (buyAmount === "max") {
             amount = getMaxAffordableAmount(itemId, gameState);
             totalCost = calculateTotalCost(itemId, amount, gameState);
         }
         
         const displayCostString = amount > 1 ? 
-            `成本: ${totalCost}修为 (x${amount})` : 
-            `成本: ${nextCost}修为`;
+            `成本: ${formatNumber(totalCost, numberFormat)}修为 (x${amount})` : 
+            `成本: ${formatNumber(nextCost, numberFormat)}修为`;
+            
+        // 确保使用正确的成本进行判断
+        const costToCheck = amount > 1 ? totalCost : nextCost;
+        const canAfford = gameState.resources.cultivationPoints >= costToCheck;
             
         return {
             itemId,
             displayCostString,
-            canAfford: gameState.resources.cultivationPoints >= nextCost
+            canAfford
         };
     });
 }
@@ -107,4 +115,33 @@ export function getMaxAffordableAmount(itemId, gameState) {
     }
     
     return amount;
+}
+
+/**
+ * 格式化数字为指定格式
+ * @param {number} num - 要格式化的数字
+ * @param {string} format - 格式化方式 ('scientific' 或 'chinese')
+ * @returns {string} 格式化后的字符串
+ */
+function formatNumber(num, format = 'scientific') {
+    if (num < 1000) return num.toString();
+    
+    if (format === 'chinese') {
+        const units = ['', '万', '亿', '兆', '京', '垓', '秭', '穰', '沟', '涧', '正', '载'];
+        let exp = Math.floor(Math.log10(num));
+        let unitIndex = Math.floor(exp / 4);
+        let value = num / Math.pow(10, unitIndex * 4);
+        
+        // 如果数值太大，超过中文单位范围，回退到科学计数法
+        if (unitIndex >= units.length) {
+            return formatNumber(num, 'scientific');
+        }
+        
+        return `${value.toFixed(2)}${units[unitIndex]}`;
+    } else {
+        // 科学计数法
+        const exp = Math.floor(Math.log10(num));
+        const coeff = num / Math.pow(10, exp);
+        return `${coeff.toFixed(2)}e${exp}`;
+    }
 } 

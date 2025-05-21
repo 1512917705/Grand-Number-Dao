@@ -142,15 +142,15 @@ function isValidSaveData(data) {
  */
 function attemptAutoSave() {
     try {
-        console.log('开始自动保存...');
+        // console.log('开始自动保存...');
         const saveData = gatherDataForSave();
-        console.log('收集到的存档数据:', saveData);
+        // console.log('收集到的存档数据:', saveData);
         
         const serializedData = JSON.stringify(saveData);
-        console.log('序列化后的数据长度:', serializedData.length);
+        // console.log('序列化后的数据长度:', serializedData.length);
         
         localStorage.setItem(SAVE_KEY, serializedData);
-        console.log('自动保存成功完成');
+        // console.log('自动保存成功完成');
         showAutoSaveNotification();
         return true;
     } catch (error) {

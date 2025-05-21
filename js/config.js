@@ -14,7 +14,7 @@ export const config = {
     gameBalance: {
         // 点击相关
         clickValue: 10, // 每次点击消耗的灵气数量
-        conversionRate: 10, // 灵气转化为修为的比率
+        conversionRate: 1, // 灵气转化为修为的比率
         
         // 自动化设备基础配置
         automation: {
